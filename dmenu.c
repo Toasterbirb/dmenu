@@ -43,7 +43,7 @@ static int bh, mw, mh;
 static int dmx = 0; /* put dmenu at this x offset */
 static int dmy = 0; /* put dmenu at this y offset (measured from the bottom if topbar is 0) */
 static unsigned int dmw = 0; /* make dmenu this wide */
-static int inputw = 0, promptw;
+static int inputw = 0, promptw, passwd = 0;
 static int lrpad; /* sum of left and right padding */
 static size_t cursor;
 static struct item *items = NULL;
@@ -113,7 +113,7 @@ calcoffsets(void)
 	int i, n;
 
 	if (lines > 0)
-		n = lines * bh;
+		n = lines * columns * bh;
 	else
 		n = mw - (promptw + inputw + TEXTW("<") + TEXTW(">"));
 	/* calculate which items will begin the next page and previous page */
@@ -170,6 +170,7 @@ drawmenu(void)
 	unsigned int curpos;
 	struct item *item;
 	int x = 0, y = 0, w;
+	char *censort;
 
 	drw_setscheme(drw, scheme[SchemeNorm]);
 	drw_rect(drw, 0, 0, mw, mh, 1, 1);
@@ -181,7 +182,12 @@ drawmenu(void)
 	/* draw input field */
 	w = (lines > 0 || !matches) ? mw - x : inputw;
 	drw_setscheme(drw, scheme[SchemeNorm]);
-	drw_text(drw, x, 0, w, bh, lrpad / 2, text, 0);
+	if (passwd) {
+		censort = ecalloc(1, sizeof(text));
+		memset(censort, passwdchar, strlen(text));
+		drw_text(drw, x, 0, w, bh, lrpad / 2, censort, 0);
+		free(censort);
+	} else drw_text(drw, x, 0, w, bh, lrpad / 2, text, 0);
 
 	curpos = TEXTW(text) - TEXTW(&text[cursor]);
 	if ((curpos += lrpad / 2 - 1) < w) {
@@ -190,9 +196,15 @@ drawmenu(void)
 	}
 
 	if (lines > 0) {
-		/* draw vertical list */
-		for (item = curr; item != next; item = item->right)
-			drawitem(item, x, y += bh, mw - x);
+      /* draw grid */
+      int i = 0;
+      for (item = curr; item != next; item = item->right, i++)
+          drawitem(
+              item,
+              x + ((i / lines) *  ((mw - x) / columns)),
+              y + (((i % lines) + 1) * bh),
+              (mw - x) / columns
+          );
 	} else if (matches) {
 		/* draw horizontal list */
 		x += inputw;
@@ -573,6 +585,11 @@ readstdin(void)
 	size_t i, imax = 0, size = 0;
 	unsigned int tmpmax = 0;
 
+	if (passwd) {
+		inputw = lines = 0;
+		return;
+	}
+
 	/* read each line from stdin and add it to the item list */
 	for (i = 0; fgets(buf, sizeof buf, stdin); i++) {
 		if (i + 1 >= size / sizeof *items)
@@ -750,7 +767,7 @@ setup(void)
 static void
 usage(void)
 {
-	fputs("usage: dmenu [-bfiv] [-l lines] [-p prompt] [-fn font] [-m monitor]\n"
+	fputs("usage: dmenu [-bfiPv] [-l lines] [-g columns] [-p prompt] [-fn font] [-m monitor]\n"
 	      "             [-x xoffset] [-y yoffset] [-z width]\n"
 		  "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]\n"
 		  "             [-hb color] [-hf color] [-hp items]\n", stderr);
@@ -775,12 +792,18 @@ main(int argc, char *argv[])
 		else if (!strcmp(argv[i], "-i")) { /* case-insensitive item matching */
 			fstrncmp = strncasecmp;
 			fstrstr = cistrstr;
-		} else if (i + 1 == argc)
+		} else if (!strcmp(argv[i], "-P"))   /* is the input a password */
+			passwd = 1;
+		else if (i + 1 == argc)
 			usage();
 		/* these options take one argument */
-		else if (!strcmp(argv[i], "-l"))   /* number of lines in vertical list */
+		else if (!strcmp(argv[i], "-g")) {   /* number of columns in grid */
+			columns = atoi(argv[++i]);
+			if (lines == 0) lines = 1;
+		} else if (!strcmp(argv[i], "-l")) { /* number of lines in grid */
 			lines = atoi(argv[++i]);
-		else if (!strcmp(argv[i], "-x"))   /* window x offset */
+			if (columns == 0) columns = 1;
+		} else if (!strcmp(argv[i], "-x"))   /* window x offset */
            dmx = atoi(argv[++i]);
 		else if (!strcmp(argv[i], "-y"))   /* window y offset (from bottom up if -b) */
            dmy = atoi(argv[++i]);
