@@ -14,11 +14,10 @@ static int height_offset = 64;   /* Offset from the top (or bottom) of the scree
 
 static const char *colors[SchemeLast][2] = {
 	/*                    fg         bg       */
-	[SchemeNorm]      = { "#bbbbbb", "#222222" },
-	[SchemeSel]       = { "#000000", "#ffffff" },
-	[SchemeSelShadow] = { "#000000", "#a0abbd" },
+	[SchemeNorm]      = { "#cddbf9", "#2c2e3e" },
+	[SchemeSel]       = { "#2c2e3e", "#b1dba4" },
 	[SchemeOut]       = { "#000000", "#00ffff" },
-	[SchemeHp]        = { "#bbbbbb", "#333333" },
+	[SchemeHp]        = { "#223249", "#333333" },
 };
 /* -l and -g options; controls number of lines and columns in grid if > 0 */
 static unsigned int lines      = 0;
