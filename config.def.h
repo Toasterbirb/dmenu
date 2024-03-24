@@ -8,7 +8,7 @@ static const char *fonts[] = {
 };
 static const char *prompt      = NULL;      /* -p  option; prompt to the left of input field */
 static const char passwdchar   = '*';
-static int centered_menu = 1;    /* Floating centered menu at the top. Only works with xinerama enabled
+static int centered_menu = 0;    /* Floating centered menu at the top. Only works with xinerama enabled
                                     this will also override the position setting args */
 static int height_offset = 64;   /* Offset from the top (or bottom) of the screen when using centered menu */
 
