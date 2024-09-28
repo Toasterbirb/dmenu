@@ -772,7 +772,7 @@ setup(void)
 static void
 usage(void)
 {
-	fputs("usage: dmenu [-bfiPv] [-l lines] [-g columns] [-p prompt] [-fn font] [-m monitor]\n"
+	fputs("usage: dmenu [-bfiPvc] [-l lines] [-g columns] [-p prompt] [-fn font] [-m monitor]\n"
 	      "             [-x xoffset] [-y yoffset] [-z width]\n"
 		  "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]\n"
 		  "             [-hb color] [-hf color] [-hp items]\n", stderr);
